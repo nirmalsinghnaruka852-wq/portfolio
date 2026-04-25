@@ -188,7 +188,8 @@ body{background:#080c10;color:#c9d1d9}
 #content{display:flex;flex:1;overflow:hidden}
 
 /* ─── Editor pane ─── */
-#editor-pane{display:flex;flex-direction:column;overflow:hidden}
+/* FIX 2: flex:2.5 makes editor ~71% wide, terminal ~29% on load */
+#editor-pane{display:flex;flex-direction:column;overflow:hidden;flex:2.5}
 
 #tab-bar{
   height:36px;
@@ -278,7 +279,8 @@ body{background:#080c10;color:#c9d1d9}
 #split-handle:hover,#split-handle.dragging{background:var(--accent)}
 
 /* ─── Terminal pane ─── */
-#terminal-pane{display:flex;flex-direction:column;overflow:hidden;flex:1;min-width:200px}
+/* FIX 2: flex:1 keeps terminal ~29% on load */
+#terminal-pane{display:flex;flex-direction:column;overflow:hidden;flex:1;min-width:425px}
 
 #term-header{
   height:36px;
@@ -599,47 +601,16 @@ const PORTFOLIO = {
   name: "Nirmal Singh Naruka",
   role: "Full Stack Developer (MERN)",
   location: "Rajasthan, India 🇮🇳",
-  // FIX: corrected email (was placeholder in contact.md)
   email: "nirmalsinghnaruka35@gmail.com",
-  // FIX: corrected GitHub URL (was nirmalnaruka, actual is nirmalsinghnaruka852-wq)
   github: "https://github.com/nirmalsinghnaruka852-wq",
-  // FIX: corrected LinkedIn URL (was placeholder)
   linkedin: "https://www.linkedin.com/in/nirmal-singh-naruka-9376bb366/",
   bio: "Passionate full-stack developer building scalable web apps with MERN. I love clean code, elegant architecture, and solving real-world problems through technology.",
   skills: {
-    frontend: [
-      "React.js",
-      "TypeScript",
-      "JavaScript (ES6+)",
-      "Tailwind CSS",
-      "HTML5",
-      "CSS3"
-    ],
-    backend: [
-      "Node.js",
-      "Express.js",
-      "REST APIs",
-      "Authentication (JWT)",
-      "WebSockets"
-    ],
-    database: [
-      "MongoDB",
-      "Mongoose",
-      "SQL",
-      "Redis"
-    ],
-    tools: [
-      "Git",
-      "GitHub",
-      "Vite",
-      "Postman",
-      "VS Code"
-    ],
-    cs: [
-      "Data Structures",
-      "Algorithms",
-      "Object-Oriented Programming",
-    ]
+    frontend: ["React.js","TypeScript","JavaScript (ES6+)","Tailwind CSS","HTML5","CSS3"],
+    backend: ["Node.js","Express.js","REST APIs","Authentication (JWT)","WebSockets"],
+    database: ["MongoDB","Mongoose","SQL","Redis"],
+    tools: ["Git","GitHub","Vite","Postman","VS Code"],
+    cs: ["Data Structures","Algorithms","Object-Oriented Programming"]
   },
   projects: [
     {
@@ -851,7 +822,6 @@ const experience = [
 
 export default experience;`,
 
-  // FIX: contact.md now uses all correct/real links and email
   "contact.md": `# Contact Nirmal
 
 ## Let's Work Together
@@ -869,7 +839,6 @@ export default experience;`,
 
 Location: Rajasthan, India`,
 
-  // FIX: internship.js now has real content from PORTFOLIO.experience
   "internship.js": `// internship.js — Internship Experience
 
 const internships = [
@@ -916,7 +885,6 @@ const internships = [
 
 export default internships;`,
 
-  // FIX: freelance.js now has content instead of being empty
   "freelance.js": `// freelance.js — Freelance & Personal Projects
 
 const freelanceWork = [
@@ -962,22 +930,12 @@ const FILE_TREE = [
 ];
 
 const TAB_COLORS = {
-  "about.js":"#f0c040",
-  "projects.json":"#f97316",
-  "skills.ts":"#4d9fff",
-  "contact.md":"#3cc95a",
-  "experience.ts":"#ffb067",
-  "internship.js":"#f0c040",
-  "freelance.js":"#f0c040"
+  "about.js":"#f0c040","projects.json":"#f97316","skills.ts":"#4d9fff",
+  "contact.md":"#3cc95a","experience.ts":"#ffb067","internship.js":"#f0c040","freelance.js":"#f0c040"
 };
 const LANG_MAP = {
-  "about.js":"javascript",
-  "projects.json":"json",
-  "skills.ts":"typescript",
-  "contact.md":"markdown",
-  "experience.ts":"typescript",
-  "internship.js":"javascript",
-  "freelance.js":"javascript"
+  "about.js":"javascript","projects.json":"json","skills.ts":"typescript",
+  "contact.md":"markdown","experience.ts":"typescript","internship.js":"javascript","freelance.js":"javascript"
 };
 const LANG_DISPLAY = {"javascript":"JavaScript","typescript":"TypeScript","json":"JSON","markdown":"Markdown"};
 
@@ -1091,9 +1049,16 @@ function updateEditor(filename){
 }
 
 // ─── Terminal ───
+
+// FIX 1: scrollToBottom scrolls the output container directly — reliable, instant
+function scrollToBottom(){
+  const out = document.getElementById('terminal-output');
+  out.scrollTop = out.scrollHeight;
+}
+
 function addLines(lines, animate=false){
   const out = document.getElementById('terminal-output');
-  let delay = 0;
+  let totalDelay = 0;
   lines.forEach(line => {
     const p = document.createElement('p');
     p.className = 'term-line ' + (line.color||'t-white');
@@ -1103,18 +1068,21 @@ function addLines(lines, animate=false){
       setTimeout(() => {
         const iv = setInterval(() => {
           p.textContent = line.text.slice(0, ++j);
+          // FIX 1: scroll on every character update during animation
+          scrollToBottom();
           if(j >= line.text.length) clearInterval(iv);
         }, 6);
-      }, delay);
-      delay += Math.min(line.text.length * 1.5, 50);
+      }, totalDelay);
+      totalDelay += Math.min(line.text.length * 1.5, 50);
     } else {
       p.textContent = line.text || '';
     }
     out.appendChild(p);
   });
-  setTimeout(() => {
-    document.getElementById('terminal-input')?.scrollIntoView({behavior:'smooth'});
-  }, delay + 80);
+  // FIX 1: scroll immediately after appending non-animated lines
+  scrollToBottom();
+  // also scroll after animation finishes
+  setTimeout(scrollToBottom, totalDelay + 100);
 }
 
 function clearTerminal(){ document.getElementById('terminal-output').innerHTML = ''; }
@@ -1196,7 +1164,6 @@ function projectsOutput(){
     lines.push({text:`  ${String(i+1).padStart(2,'0')}  ${p.name}`,color:'t-blue'});
     lines.push({text:`      ${p.desc}`,color:'t-white'});
     lines.push({text:`      ${p.tech.join('  ·  ')}`,color:'t-purple'});
-    // FIX: no longer prints the word "null" for missing github links
     lines.push({text:`      status: ${p.status}`,color:'t-muted'});
     lines.push({text:''});
   });
@@ -1275,7 +1242,6 @@ function lsOutput(){
 }
 
 function getCompileOutput(){
-  // FIX: skills in run output now match actual PORTFOLIO.skills only
   const allSkills = [
     ...PORTFOLIO.skills.frontend,
     ...PORTFOLIO.skills.backend,
@@ -1310,7 +1276,6 @@ function getCompileOutput(){
     {text:`  ${allSkills}`,color:'t-white'},
     {text:''},
     {text:'  Projects',color:'t-purple'},
-    // FIX: no longer prints "null" for project links
     ...PORTFOLIO.projects.map((p,i)=>({text:`  ${String(i+1).padStart(2,'0')}  ${p.name.padEnd(28)}  ${p.status}`,color:'t-white'})),
     {text:''},
     {text:'  Contact',color:'t-orange'},
