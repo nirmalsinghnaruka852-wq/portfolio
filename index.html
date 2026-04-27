@@ -1346,7 +1346,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('run-btn').addEventListener('click', runCode);
+  document.getElementById('run-btn').addEventListener('click', () => {
+  
+  runCode();
+
+  
+  gtag('event', 'run_profile', {
+    action: 'run_code'
+  });
+});
   document.addEventListener('keydown', e => {
     if((e.ctrlKey||e.metaKey) && e.key === 'Enter'){ e.preventDefault(); runCode(); }
   });
